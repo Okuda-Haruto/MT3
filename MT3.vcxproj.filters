@@ -47,6 +47,9 @@
     <ClCompile Include="Vector3_operation.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Matrix4x4_operation.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
@@ -121,6 +124,9 @@
       <Filter>KamataEngine\Include</Filter>
     </ClInclude>
     <ClInclude Include="Vector3_operation.h">
+      <Filter>ヘッダーファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix4x4_operation.h">
       <Filter>ヘッダーファイル</Filter>
     </ClInclude>
   </ItemGroup>
