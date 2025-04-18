@@ -1,5 +1,6 @@
 ﻿#include<Matrix4x4_operation.h>
 #include<assert.h>
+#include<cmath>
 
 //行列の加法
 Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2) {
@@ -114,4 +115,31 @@ Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 	returnVector.y /= w;
 	returnVector.z /= w;
 	return returnVector;
+}
+
+Matrix4x4 MakeRotateXMatrix(float radian) {
+	Matrix4x4 returnMatrix;
+	returnMatrix.m[0][0] = 1.0f; returnMatrix.m[0][1] = 0.0f; returnMatrix.m[0][2] = 0.0f; returnMatrix.m[0][3] = 0.0f;
+	returnMatrix.m[1][0] = 0.0f; returnMatrix.m[1][1] = std::cos(radian); returnMatrix.m[1][2] = std::sin(radian); returnMatrix.m[1][3] = 0.0f;
+	returnMatrix.m[2][0] = 0.0f; returnMatrix.m[2][1] = -std::sin(radian); returnMatrix.m[2][2] = std::cos(radian); returnMatrix.m[2][3] = 0.0f;
+	returnMatrix.m[3][0] = 0.0f; returnMatrix.m[3][1] = 0.0f; returnMatrix.m[3][2] = 0.0f; returnMatrix.m[3][3] = 1.0f;
+	return returnMatrix;
+}
+
+Matrix4x4 MakeRotateYMatrix(float radian) {
+	Matrix4x4 returnMatrix;
+	returnMatrix.m[0][0] = std::cos(radian); returnMatrix.m[0][1] = 0.0f; returnMatrix.m[0][2] = -std::sin(radian); returnMatrix.m[0][3] = 0.0f;
+	returnMatrix.m[1][0] = 0.0f; returnMatrix.m[1][1] = 1.0f; returnMatrix.m[1][2] = 0.0f; returnMatrix.m[1][3] = 0.0f;
+	returnMatrix.m[2][0] = std::sin(radian); returnMatrix.m[2][1] = 0.0f; returnMatrix.m[2][2] = std::cos(radian); returnMatrix.m[2][3] = 0.0f;
+	returnMatrix.m[3][0] = 0.0f; returnMatrix.m[3][1] = 0.0f; returnMatrix.m[3][2] = 0.0f; returnMatrix.m[3][3] = 1.0f;
+	return returnMatrix;
+}
+
+Matrix4x4 MakeRotateZMatrix(float radian) {
+	Matrix4x4 returnMatrix;
+	returnMatrix.m[0][0] = std::cos(radian); returnMatrix.m[0][1] = std::sin(radian); returnMatrix.m[0][2] = 0.0f; returnMatrix.m[0][3] = 0.0f;
+	returnMatrix.m[1][0] = -std::sin(radian); returnMatrix.m[1][1] = std::cos(radian); returnMatrix.m[1][2] = 0.0f; returnMatrix.m[1][3] = 0.0f;
+	returnMatrix.m[2][0] = 0.0f; returnMatrix.m[2][1] = 0.0f; returnMatrix.m[2][2] = 1.0f; returnMatrix.m[2][3] = 0.0f;
+	returnMatrix.m[3][0] = 0.0f; returnMatrix.m[3][1] = 0.0f; returnMatrix.m[3][2] = 0.0f; returnMatrix.m[3][3] = 1.0f;
+	return returnMatrix;
 }
