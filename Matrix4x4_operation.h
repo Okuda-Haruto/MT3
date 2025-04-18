@@ -28,3 +28,6 @@ Matrix4x4 MakeRotateXMatrix(float radian);
 Matrix4x4 MakeRotateYMatrix(float radian);
 //Z軸回転行列
 Matrix4x4 MakeRotateZMatrix(float radian);
+
+//3次元アフィン変換行列
+Matrix4x4 MakeAffineMatrix(Vector3& scale, Vector3& rotate, Vector3& translate);
