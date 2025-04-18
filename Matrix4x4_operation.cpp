@@ -94,6 +94,7 @@ Matrix4x4 MakeTranslateMatrix(const Vector3& translate) {
 	returnMatrix.m[3][0] = translate.x; returnMatrix.m[3][1] = translate.y; returnMatrix.m[3][2] = translate.z; returnMatrix.m[3][3] = 1.0f;
 	return returnMatrix;
 }
+
 //拡大縮小行列
 Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
 	Matrix4x4 returnMatrix;
@@ -103,6 +104,7 @@ Matrix4x4 MakeScaleMatrix(const Vector3& scale) {
 	returnMatrix.m[3][0] = 0.0f; returnMatrix.m[3][1] = 0.0f; returnMatrix.m[3][2] = 0.0f; returnMatrix.m[3][3] = 1.0f;
 	return returnMatrix;
 }
+
 //座標変換
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 	Vector3 returnVector;
@@ -117,6 +119,7 @@ Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 	return returnVector;
 }
 
+//X軸回転行列
 Matrix4x4 MakeRotateXMatrix(float radian) {
 	Matrix4x4 returnMatrix;
 	returnMatrix.m[0][0] = 1.0f; returnMatrix.m[0][1] = 0.0f; returnMatrix.m[0][2] = 0.0f; returnMatrix.m[0][3] = 0.0f;
@@ -126,6 +129,7 @@ Matrix4x4 MakeRotateXMatrix(float radian) {
 	return returnMatrix;
 }
 
+//Y軸回転行列
 Matrix4x4 MakeRotateYMatrix(float radian) {
 	Matrix4x4 returnMatrix;
 	returnMatrix.m[0][0] = std::cos(radian); returnMatrix.m[0][1] = 0.0f; returnMatrix.m[0][2] = -std::sin(radian); returnMatrix.m[0][3] = 0.0f;
@@ -135,6 +139,7 @@ Matrix4x4 MakeRotateYMatrix(float radian) {
 	return returnMatrix;
 }
 
+//Z軸回転行列
 Matrix4x4 MakeRotateZMatrix(float radian) {
 	Matrix4x4 returnMatrix;
 	returnMatrix.m[0][0] = std::cos(radian); returnMatrix.m[0][1] = std::sin(radian); returnMatrix.m[0][2] = 0.0f; returnMatrix.m[0][3] = 0.0f;
@@ -144,6 +149,7 @@ Matrix4x4 MakeRotateZMatrix(float radian) {
 	return returnMatrix;
 }
 
+//3次元アフィン変換行列
 Matrix4x4 MakeAffineMatrix(Vector3& scale, Vector3& rotate, Vector3& translate) {
 	Matrix4x4 rotateX = MakeRotateXMatrix(rotate.x);
 	Matrix4x4 rotateY = MakeRotateYMatrix(rotate.y);
@@ -156,5 +162,35 @@ Matrix4x4 MakeAffineMatrix(Vector3& scale, Vector3& rotate, Vector3& translate) 
 	returnMatrix.m[1][0] = scale.y * rotateMatrix.m[1][0]; returnMatrix.m[1][1] = scale.y * rotateMatrix.m[1][1]; returnMatrix.m[1][2] = scale.y * rotateMatrix.m[1][2]; returnMatrix.m[1][3] = 0.0f;
 	returnMatrix.m[2][0] = scale.z * rotateMatrix.m[2][0]; returnMatrix.m[2][1] = scale.z * rotateMatrix.m[2][1]; returnMatrix.m[2][2] = scale.z * rotateMatrix.m[2][2]; returnMatrix.m[2][3] = 0.0f;
 	returnMatrix.m[3][0] = translate.x; returnMatrix.m[3][1] = translate.y; returnMatrix.m[3][2] = translate.z; returnMatrix.m[3][3] = 1.0f;
+	return returnMatrix;
+}
+
+//透視投影行列
+Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farClip) {
+	Matrix4x4 returnMatrix;
+	returnMatrix.m[0][0] = 1 / tanf(fovY / 2) / aspectRatio; returnMatrix.m[0][1] = 0.0f; returnMatrix.m[0][2] = 0.0f; returnMatrix.m[0][3] = 0.0f;
+	returnMatrix.m[1][0] = 0.0f; returnMatrix.m[1][1] = 1 / tanf(fovY / 2); returnMatrix.m[1][2] = 0.0f; returnMatrix.m[1][3] = 0.0f;
+	returnMatrix.m[2][0] = 0.0f; returnMatrix.m[2][1] = 0.0f; returnMatrix.m[2][2] = farClip / (farClip - nearClip); returnMatrix.m[2][3] = 1.0f;
+	returnMatrix.m[3][0] = 0.0f; returnMatrix.m[3][1] = 0.0f; returnMatrix.m[3][2] = -nearClip * farClip / (farClip - nearClip); returnMatrix.m[3][3] = 0.0f;
+	return returnMatrix;
+}
+
+//正射影行列
+Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip) {
+	Matrix4x4 returnMatrix;
+	returnMatrix.m[0][0] = 2 / (right - left); returnMatrix.m[0][1] = 0.0f; returnMatrix.m[0][2] = 0.0f; returnMatrix.m[0][3] = 0.0f;
+	returnMatrix.m[1][0] = 0.0f; returnMatrix.m[1][1] = 2 / (top - bottom); returnMatrix.m[1][2] = 0.0f; returnMatrix.m[1][3] = 0.0f;
+	returnMatrix.m[2][0] = 0.0f; returnMatrix.m[2][1] = 0.0f; returnMatrix.m[2][2] = 1 / (farClip - nearClip); returnMatrix.m[2][3] = 0.0f;
+	returnMatrix.m[3][0] = (left + right) / (left - right); returnMatrix.m[3][1] = (top + bottom) / (bottom - top); returnMatrix.m[3][2] = nearClip / (nearClip - farClip); returnMatrix.m[3][3] = 1.0f;
+	return returnMatrix;
+}
+
+//ビューポート変換行列
+Matrix4x4 MakeViewPortMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
+	Matrix4x4 returnMatrix;
+	returnMatrix.m[0][0] = width / 2; returnMatrix.m[0][1] = 0.0f; returnMatrix.m[0][2] = 0.0f; returnMatrix.m[0][3] = 0.0f;
+	returnMatrix.m[1][0] = 0.0f; returnMatrix.m[1][1] = -height / 2; returnMatrix.m[1][2] = 0.0f; returnMatrix.m[1][3] = 0.0f;
+	returnMatrix.m[2][0] = 0.0f; returnMatrix.m[2][1] = 0.0f; returnMatrix.m[2][2] = maxDepth - minDepth; returnMatrix.m[2][3] = 0.0f;
+	returnMatrix.m[3][0] = left + width / 2; returnMatrix.m[3][1] = top + height / 2; returnMatrix.m[3][2] = minDepth; returnMatrix.m[3][3] = 1.0f;
 	return returnMatrix;
 }
