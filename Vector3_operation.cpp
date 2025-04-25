@@ -43,3 +43,12 @@ Vector3 Normalize(const Vector3& v) {
 	AnswerVector = Multiply(1.0f / Length(v),v);
 	return AnswerVector;
 }
+
+//クロス積
+Vector3 Cross(const Vector3& v1, const Vector3& v2) {
+	Vector3 AnswerVector;
+	AnswerVector.x = v1.y * v2.z - v1.z * v2.y;
+	AnswerVector.y = v1.z * v2.x - v1.x * v2.z;
+	AnswerVector.z = v1.x * v2.y - v1.y * v2.x;
+	return AnswerVector;
+}
