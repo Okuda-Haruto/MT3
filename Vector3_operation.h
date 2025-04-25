@@ -13,3 +13,6 @@ float Dot(const Vector3& v1, const Vector3& v2);
 float Length(const Vector3& v);
 //正規化
 Vector3 Normalize(const Vector3& v);
+
+//クロス積
+Vector3 Cross(const Vector3& v1, const Vector3& v2);
