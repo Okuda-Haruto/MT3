@@ -6,6 +6,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <imgui.h>
+#include "Collision.h"
 
 const char kWindowTitle[] = "LE2A_02_オクダハルト_MT3";
 
@@ -43,11 +44,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 v2{ 2.8f,0.4f,-1.3f };
 	Vector3 cross = Cross(v1, v2);
 
-	Sphere sphere{
-		{0.0f,1.0f,0.0f},
-		1.0f
-	};
-
 	Vector3 rotate{ 0.0f,0.0f,0.0f };
 	Vector3 translate{ 0.0f,0.0f,10.0f};
 	Vector3 cameraTranslate{0.0f,3.0f,0.0f};
@@ -58,6 +54,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{0.0f,1.0f,0.0f},
 		{-1.0f,-1.0f,0.0f}
 	};
+
+	Segment segment{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
+	Vector3 point{ -1.5f,0.6f,0.6f };
+
+	Vector3 project = Project(Subtract(point, segment.origin), segment.diff);
+	Vector3 closestPoint = ClosestPoint(point, segment);
+
+	Sphere pointSphere{ point,0.01f };
+	Sphere closestPointSphere{ closestPoint,0.01f };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -88,8 +93,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
-		ImGui::DragFloat3("SphereCenter", &sphere.center.x, 0.01f);
-		ImGui::DragFloat("SphereRadius", &sphere.radius, 0.01f);
+		ImGui::DragFloat3("Segment diff", &segment.diff.x, 0.01f);
+		ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
 		ImGui::End();
 
 		//rotate.y += 0.1f;
@@ -106,6 +111,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			screenVertices[i] = Transform(ndcVertex, viewportMatrix);
 		}
 
+		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin,segment.diff), worldViewProjectionMatrix), viewportMatrix);
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -116,7 +124,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, 0x000000FF);
+		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
+
+		DrawSphere(pointSphere, worldViewProjectionMatrix, viewportMatrix, RED);
+		DrawSphere(closestPointSphere, worldViewProjectionMatrix, viewportMatrix, BLACK);
 
 		///
 		/// ↑描画処理ここまで
