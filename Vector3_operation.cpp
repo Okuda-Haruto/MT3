@@ -1,5 +1,5 @@
 ﻿#include<Vector3_operation.h>
-#include<math.h>
+#include<cmath>
 
 //加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
