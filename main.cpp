@@ -55,14 +55,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{-1.0f,-1.0f,0.0f}
 	};
 
-	Segment segment{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
-	Vector3 point{ -1.5f,0.6f,0.6f };
-
-	Vector3 project = Project(Subtract(point, segment.origin), segment.diff);
-	Vector3 closestPoint = ClosestPoint(point, segment);
-
-	Sphere pointSphere{ point,0.01f };
-	Sphere closestPointSphere{ closestPoint,0.01f };
+	Sphere sphere1{ {0.0f,0.0f,0.0f},1.0f };
+	Sphere sphere2{ {1.0f,1.0f,0.0f},0.5f };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -93,8 +87,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
-		ImGui::DragFloat3("Segment diff", &segment.diff.x, 0.01f);
-		ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
+		ImGui::DragFloat3("sphere1 center", &sphere1.center.x, 0.01f);
+		ImGui::DragFloat("sphere1 radius", &sphere1.radius, 0.01f);
+		ImGui::DragFloat3("sphere2 center", &sphere2.center.x, 0.01f);
+		ImGui::DragFloat("sphere2 radius", &sphere2.radius, 0.01f);
 		ImGui::End();
 
 		//rotate.y += 0.1f;
@@ -111,9 +107,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			screenVertices[i] = Transform(ndcVertex, viewportMatrix);
 		}
 
-		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin,segment.diff), worldViewProjectionMatrix), viewportMatrix);
-
 		///
 		/// ↑更新処理ここまで
 		///
@@ -124,10 +117,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
-
-		DrawSphere(pointSphere, worldViewProjectionMatrix, viewportMatrix, RED);
-		DrawSphere(closestPointSphere, worldViewProjectionMatrix, viewportMatrix, BLACK);
+		if (IsCollision(sphere1, sphere2)) {
+			DrawSphere(sphere1, worldViewProjectionMatrix, viewportMatrix, WHITE);
+		} else {
+			DrawSphere(sphere1, worldViewProjectionMatrix, viewportMatrix, RED);
+		}
+		DrawSphere(sphere2, worldViewProjectionMatrix, viewportMatrix, WHITE);
 
 		///
 		/// ↑描画処理ここまで
