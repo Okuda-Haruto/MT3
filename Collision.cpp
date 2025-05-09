@@ -13,10 +13,7 @@ Vector3 Project(const Vector3& v1, const Vector3& v2) {
 //最終接点
 Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 	Vector3 cp;
-	Vector3 a = Subtract(Subtract(point, segment.origin), segment.diff);
-	Vector3 b = Subtract(point, segment.origin);
-	float t;
-	t = Dot(a, b) / powf(Length(b), 2);
-	cp = Add(segment.origin, Project(b, segment.diff));
+	Vector3 a = Subtract(point, segment.origin);
+	cp = Add(segment.origin, Project(a, segment.diff));
 	return cp;
 }
