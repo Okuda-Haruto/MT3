@@ -56,7 +56,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{-1.0f,-1.0f,0.0f}
 	};
 
-	Sphere sphere1{ {0.0f,0.0f,0.0f},1.0f };
+	Segment segment{
+		{0.0f,0.0f,0.0f},
+		{1.0f,1.0f,1.0f}
+	};
 
 	Plane plane{ {0.0f,1.0f,0.0f},1.0f };
 
@@ -89,8 +92,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
-		ImGui::DragFloat3("sphere1 center", &sphere1.center.x, 0.01f);
-		ImGui::DragFloat("sphere1 radius", &sphere1.radius, 0.01f);
+		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
+		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
 		ImGui::DragFloat3("plane normal", &plane.normal.x, 0.01f);
 		plane.normal = Normalize(plane.normal);
 		ImGui::End();
@@ -121,10 +124,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, WHITE);
 
-		if (IsCollision(sphere1, plane)) {
-			DrawSphere(sphere1, worldViewProjectionMatrix, viewportMatrix, WHITE);
+		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), worldViewProjectionMatrix), viewportMatrix);
+
+		if (IsCollision(segment, plane)) {
+			Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
 		} else {
-			DrawSphere(sphere1, worldViewProjectionMatrix, viewportMatrix, RED);
+			Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), RED);
 		}
 
 		///
