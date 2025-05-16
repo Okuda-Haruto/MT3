@@ -32,3 +32,42 @@ bool IsCollision(const Sphere& sphere, const Plane& plane) {
 
 	return fabsf(k) <= sphere.radius;
 }
+
+//直線と平面の衝突
+bool IsCollision(const Line& line, const Plane& plane) {
+	if ((plane.distance - Dot(line.origin, plane.normal)) == 0.0f) {
+		return false;
+	}
+
+	return true;
+}
+
+//半直線と平面の衝突
+bool IsCollision(const Ray& ray, const Plane& plane) {
+	if ((plane.distance - Dot(ray.origin, plane.normal)) == 0.0f) {
+		return false;
+	}
+
+	float t = (plane.distance - Dot(ray.origin, plane.normal)) / Dot(ray.diff, plane.normal);
+
+	if (t > 0.0f) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+//線分と平面の衝突
+bool IsCollision(const Segment& segment, const Plane& plane) {
+	if ((plane.distance - Dot(segment.origin, plane.normal)) == 0.0f) {
+		return false;
+	}
+
+	float t = (plane.distance - Dot(segment.origin, plane.normal)) / Dot(segment.diff, plane.normal);
+
+	if (t > 0.0f && t <= 1.0f) {
+		return true;
+	} else {
+		return false;
+	}
+}

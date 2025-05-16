@@ -12,3 +12,9 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment);
 bool IsCollision(const Sphere& s1, const Sphere& s2);
 //球と平面の衝突
 bool IsCollision(const Sphere& sphere, const Plane& plane);
+//直線と平面の衝突
+bool IsCollision(const Line& line, const Plane& plane);
+//半直線と平面の衝突
+bool IsCollision(const Ray& ray, const Plane& plane);
+//線分と平面の衝突
+bool IsCollision(const Segment& segment, const Plane& plane);
