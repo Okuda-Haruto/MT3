@@ -7,6 +7,7 @@
 #include <cmath>
 #include <imgui.h>
 #include "Collision.h"
+#include "DrawPlane.h"
 
 const char kWindowTitle[] = "LE2A_02_オクダハルト_MT3";
 
@@ -56,7 +57,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 	Sphere sphere1{ {0.0f,0.0f,0.0f},1.0f };
-	Sphere sphere2{ {1.0f,1.0f,0.0f},0.5f };
+
+	Plane plane{ {0.0f,1.0f,0.0f},1.0f };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -89,8 +91,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
 		ImGui::DragFloat3("sphere1 center", &sphere1.center.x, 0.01f);
 		ImGui::DragFloat("sphere1 radius", &sphere1.radius, 0.01f);
-		ImGui::DragFloat3("sphere2 center", &sphere2.center.x, 0.01f);
-		ImGui::DragFloat("sphere2 radius", &sphere2.radius, 0.01f);
+		ImGui::DragFloat3("plane normal", &plane.normal.x, 0.01f);
+		plane.normal = Normalize(plane.normal);
 		ImGui::End();
 
 		//rotate.y += 0.1f;
@@ -117,12 +119,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		if (IsCollision(sphere1, sphere2)) {
+		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, WHITE);
+
+		if (IsCollision(sphere1, plane)) {
 			DrawSphere(sphere1, worldViewProjectionMatrix, viewportMatrix, WHITE);
 		} else {
 			DrawSphere(sphere1, worldViewProjectionMatrix, viewportMatrix, RED);
 		}
-		DrawSphere(sphere2, worldViewProjectionMatrix, viewportMatrix, WHITE);
 
 		///
 		/// ↑描画処理ここまで
