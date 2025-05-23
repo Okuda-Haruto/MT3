@@ -1,15 +1,18 @@
+#define NOMINMAX
 #include <Novice.h>
 #include <Vector3_operation.h>
 #include <Matrix4x4_operation.h>
+
 #include "DrawGrid.h"
 #include "DrawSphere.h"
 #include "DrawTriangle.h"
+#include "DrawPlane.h"
+#include "DrawAABB.h"
+#include "Collision.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <imgui.h>
-#include "Collision.h"
-#include "DrawPlane.h"
 
 const char kWindowTitle[] = "LE2A_02_オクダハルト_MT3";
 
@@ -43,10 +46,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	Vector3 v1{ 1.2f,-3.9f,2.5f };
-	Vector3 v2{ 2.8f,0.4f,-1.3f };
-	Vector3 cross = Cross(v1, v2);
-
 	Vector3 rotate{ 0.0f,0.0f,0.0f };
 	Vector3 translate{ 0.0f,0.0f,10.0f};
 	Vector3 cameraTranslate{0.0f,3.0f,0.0f};
@@ -58,15 +57,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{-1.0f,-1.0f,0.0f}
 	};
 
-	Segment segment{
-		{0.0f,0.5f,-1.0f},
-		{0.0f,0.0f,1.0f}
+	AABB aabb1{
+		{-0.5f,-0.5f,-0.5f},
+		{0.0f,0.0f,0.0f}
 	};
-
-	Triangle triangle;
-	triangle.vertices[0] = { 1.0f,0.0f,0.0f };
-	triangle.vertices[1] = { 0.0f, 1.0f, 0.0f };
-	triangle.vertices[2] = { -1.0f,0.0f,0.0f };
+	AABB aabb2{
+		{0.2f,0.2f,0.2f},
+		{1.0f,1.0f,1.0f}
+	};
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -97,14 +95,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
-		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
-		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
-		ImGui::DragFloat3("triangle vertices[0]", &triangle.vertices[0].x, 0.01f);
-		ImGui::DragFloat3("triangle vertices[1]", &triangle.vertices[1].x, 0.01f);
-		ImGui::DragFloat3("triangle vertices[2]", &triangle.vertices[2].x, 0.01f);
+		ImGui::DragFloat3("aabb1 min", &aabb1.min.x, 0.01f);
+		ImGui::DragFloat3("aabb1 max", &aabb1.max.x, 0.01f);
+		ImGui::DragFloat3("aabb2 min", &aabb2.min.x, 0.01f);
+		ImGui::DragFloat3("aabb2 max", &aabb2.max.x, 0.01f);
 		ImGui::End();
 
-		//rotate.y += 0.1f;
+		aabb1.min.x = std::min(aabb1.min.x, aabb1.max.x);
+		aabb1.max.x = std::max(aabb1.min.x, aabb1.max.x);
+		aabb1.min.y = std::min(aabb1.min.y, aabb1.max.y);
+		aabb1.max.y = std::max(aabb1.min.y, aabb1.max.y);
+		aabb1.min.z = std::min(aabb1.min.z, aabb1.max.z);
+		aabb1.max.z = std::max(aabb1.min.z, aabb1.max.z);
+
+		aabb2.min.x = std::min(aabb2.min.x, aabb2.max.x);
+		aabb2.max.x = std::max(aabb2.min.x, aabb2.max.x);
+		aabb2.min.y = std::min(aabb2.min.y, aabb2.max.y);
+		aabb2.max.y = std::max(aabb2.min.y, aabb2.max.y);
+		aabb2.min.z = std::min(aabb2.min.z, aabb2.max.z);
+		aabb2.max.z = std::max(aabb2.min.z, aabb2.max.z);
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
 		Matrix4x4 cameraMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
@@ -128,16 +137,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		DrawTriangle(triangle, worldViewProjectionMatrix, viewportMatrix, WHITE);
-
-		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), worldViewProjectionMatrix), viewportMatrix);
-
-		if (IsCollision(triangle,segment)) {
-			Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
+		if (IsCollision(aabb1,aabb2)) {
+			DrawAABB(aabb1, worldViewProjectionMatrix, viewportMatrix, RED);
 		} else {
-			Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), RED);
+			DrawAABB(aabb1, worldViewProjectionMatrix, viewportMatrix, WHITE);
 		}
+
+		DrawAABB(aabb2, worldViewProjectionMatrix, viewportMatrix, WHITE);
 
 		///
 		/// ↑描画処理ここまで
