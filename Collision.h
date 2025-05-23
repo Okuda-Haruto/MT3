@@ -2,6 +2,7 @@
 #include "Line.h"
 #include "Sphere.h"
 #include "Plane.h"
+#include "Triangle.h"
 
 //正射影ベクトル
 Vector3 Project(const Vector3& v1, const Vector3& v2);
@@ -18,3 +19,5 @@ bool IsCollision(const Line& line, const Plane& plane);
 bool IsCollision(const Ray& ray, const Plane& plane);
 //線分と平面の衝突
 bool IsCollision(const Segment& segment, const Plane& plane);
+//三角形と線分の衝突
+bool IsCollision(const Triangle& triangle, const Segment& segment);

@@ -3,6 +3,8 @@
 #include <Matrix4x4_operation.h>
 #include "DrawGrid.h"
 #include "DrawSphere.h"
+#include "DrawTriangle.h"
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <imgui.h>
@@ -57,11 +59,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 	Segment segment{
-		{0.0f,0.0f,0.0f},
-		{1.0f,1.0f,1.0f}
+		{0.0f,0.5f,-1.0f},
+		{0.0f,0.0f,1.0f}
 	};
 
-	Plane plane{ {0.0f,1.0f,0.0f},1.0f };
+	Triangle triangle;
+	triangle.vertices[0] = { 1.0f,0.0f,0.0f };
+	triangle.vertices[1] = { 0.0f, 1.0f, 0.0f };
+	triangle.vertices[2] = { -1.0f,0.0f,0.0f };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -94,8 +99,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
 		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
 		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
-		ImGui::DragFloat3("plane normal", &plane.normal.x, 0.01f);
-		plane.normal = Normalize(plane.normal);
+		ImGui::DragFloat3("triangle vertices[0]", &triangle.vertices[0].x, 0.01f);
+		ImGui::DragFloat3("triangle vertices[1]", &triangle.vertices[1].x, 0.01f);
+		ImGui::DragFloat3("triangle vertices[2]", &triangle.vertices[2].x, 0.01f);
 		ImGui::End();
 
 		//rotate.y += 0.1f;
@@ -122,12 +128,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, WHITE);
+		DrawTriangle(triangle, worldViewProjectionMatrix, viewportMatrix, WHITE);
 
 		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
 		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), worldViewProjectionMatrix), viewportMatrix);
 
-		if (IsCollision(segment, plane)) {
+		if (IsCollision(triangle,segment)) {
 			Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
 		} else {
 			Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), RED);
