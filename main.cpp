@@ -58,12 +58,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	};
 
 	AABB aabb{
-		{-0.5f,-0.5f,-0.5f},
-		{0.0f,0.0f,0.0f}
+		.min{-0.5f,-0.5f,-0.5f},
+		.max{0.5f,0.5f,0.5f}
 	};
-	Sphere sphere{
-		{2.0f,0.0f,2.0f},
-		1.0f
+	Segment segment{
+		.origin{-0.7f,0.3f,0.0f},
+		.diff{2.0f,-0.5f,0.0f}
 	};
 
 	// ウィンドウの×ボタンが押されるまでループ
@@ -97,8 +97,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
 		ImGui::DragFloat3("aabb min", &aabb.min.x, 0.01f);
 		ImGui::DragFloat3("aabb max", &aabb.max.x, 0.01f);
-		ImGui::DragFloat3("sphere center", &sphere.center.x, 0.01f);
-		ImGui::DragFloat("sphere radius", &sphere.radius, 0.01f);
+		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
+		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
 		ImGui::End();
 
 		aabb.min.x = std::min(aabb.min.x, aabb.max.x);
@@ -130,9 +130,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, WHITE);
+		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin , segment.diff), worldViewProjectionMatrix), viewportMatrix);
+		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
 
-		if (IsCollision(aabb,sphere)) {
+		if (IsCollision(aabb,segment)) {
 			DrawAABB(aabb, worldViewProjectionMatrix, viewportMatrix, RED);
 		} else {
 			DrawAABB(aabb, worldViewProjectionMatrix, viewportMatrix, WHITE);

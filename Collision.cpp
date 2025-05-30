@@ -130,3 +130,114 @@ bool IsCollision(const AABB& aabb, const Sphere& sphere) {
 	}
 	return false;
 }
+
+//AABBと直線の衝突
+bool IsCollision(const AABB& aabb, const Line& line) {
+
+	Vector3 min = {
+		(aabb.min.x - line.origin.x) / line.diff.x,
+		(aabb.min.y - line.origin.y) / line.diff.y,
+		(aabb.min.z - line.origin.z) / line.diff.z,
+	};
+	Vector3 max = {
+		(aabb.max.x - line.origin.x) / line.diff.x,
+		(aabb.max.y - line.origin.y) / line.diff.y,
+		(aabb.max.z - line.origin.z) / line.diff.z,
+	};
+
+	float tNearX = std::min(min.x, max.x), tFarX = std::max(min.x, max.x);
+	float tNearY = std::min(min.y, max.y), tFarY = std::max(min.y, max.y);
+	float tNearZ = std::min(min.z, max.z), tFarZ = std::max(min.z, max.z);
+
+	//AABBとの衝突点(貫通点)のtが小さい方
+	float tmin = std::max(std::max(tNearX, tNearY), tNearZ);
+	//AABBとの衝突点(貫通点)のtが大きい方
+	float tmax = std::min(std::min(tFarX, tFarY), tFarZ);
+
+	if (tmin <= tmax) {
+		return true;
+	}
+	return false;
+}
+//AABBと半直線の衝突
+bool IsCollision(const AABB& aabb, const Ray& ray) {
+
+	Vector3 min = {
+		(aabb.min.x - ray.origin.x) / ray.diff.x,
+		(aabb.min.y - ray.origin.y) / ray.diff.y,
+		(aabb.min.z - ray.origin.z) / ray.diff.z,
+	};
+	Vector3 max = {
+		(aabb.max.x - ray.origin.x) / ray.diff.x,
+		(aabb.max.y - ray.origin.y) / ray.diff.y,
+		(aabb.max.z - ray.origin.z) / ray.diff.z,
+	};
+
+	float tNearX = std::min(min.x, max.x), tFarX = std::max(min.x, max.x);
+	float tNearY = std::min(min.y, max.y), tFarY = std::max(min.y, max.y);
+	float tNearZ = std::min(min.z, max.z), tFarZ = std::max(min.z, max.z);
+
+	//AABBとの衝突点(貫通点)のtが小さい方
+	float tmin = std::max(std::max(tNearX, tNearY), tNearZ);
+	//AABBとの衝突点(貫通点)のtが大きい方
+	float tmax = std::min(std::min(tFarX, tFarY), tFarZ);
+
+	if (tmin <= tmax && tmax >= 0.0f) {
+		return true;
+	}
+	return false;
+}
+
+//AABBと線分の衝突
+bool IsCollision(const AABB& aabb, const Segment& segment) {
+
+	Vector3 min = {
+		(aabb.min.x - segment.origin.x) / segment.diff.x,
+		(aabb.min.y - segment.origin.y) / segment.diff.y,
+		(aabb.min.z - segment.origin.z) / segment.diff.z,
+	};
+	//Nan対策
+	if ((aabb.min.x - segment.origin.x) == 0 && segment.diff.x == 0) {
+		min.x = (aabb.min.x - (segment.origin.x - 0.00001f)) / segment.diff.x;
+	}
+	if ((aabb.min.y - segment.origin.y) == 0 && segment.diff.y == 0) {
+		min.y = (aabb.min.y - (segment.origin.y - 0.00001f)) / segment.diff.y;
+	}
+	if ((aabb.min.z - segment.origin.z) == 0 && segment.diff.z == 0) {
+		min.z = (aabb.min.z - (segment.origin.z - 0.00001f)) / segment.diff.z;
+	}
+
+	Vector3 max = {
+		(aabb.max.x - segment.origin.x) / segment.diff.x,
+		(aabb.max.y - segment.origin.y) / segment.diff.y,
+		(aabb.max.z - segment.origin.z) / segment.diff.z,
+	};
+	//Nan対策
+	if ((aabb.min.x - segment.origin.x) == 0 && segment.diff.x == 0) {
+		min.x = (aabb.min.x - (segment.origin.x - 0.00001f)) / segment.diff.x;
+	}
+	if ((aabb.min.y - segment.origin.y) == 0 && segment.diff.y == 0) {
+		min.y = (aabb.min.y - (segment.origin.y - 0.00001f)) / segment.diff.y;
+	}
+	if ((aabb.min.z - segment.origin.z) == 0 && segment.diff.z == 0) {
+		min.z = (aabb.min.z - (segment.origin.z - 0.00001f)) / segment.diff.z;
+	}
+
+	float tNearX = std::min(min.x, max.x), tFarX = std::max(min.x, max.x);
+	float tNearY = std::min(min.y, max.y), tFarY = std::max(min.y, max.y);
+	float tNearZ = std::min(min.z, max.z), tFarZ = std::max(min.z, max.z);
+
+	//AABBとの衝突点(貫通点)のtが小さい方
+	float tmin = std::max(std::max(tNearX, tNearY), tNearZ);
+	//AABBとの衝突点(貫通点)のtが大きい方
+	float tmax = std::min(std::min(tFarX, tFarY), tFarZ);
+
+	if (fabsf(tmin) == INFINITY || fabsf(tmax) == INFINITY) {
+		return true;
+	}
+
+	if (tmin <= tmax && tmin <= 1.0f && tmax >= 0.0f) {
+		return true;
+	}
+	return false;
+}
