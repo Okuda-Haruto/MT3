@@ -118,6 +118,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DrawAABB.cpp" />
     <ClCompile Include="DrawGrid.cpp" />
+    <ClCompile Include="DrawOBB.cpp" />
     <ClCompile Include="DrawPlane.cpp" />
     <ClCompile Include="DrawSphere.cpp" />
     <ClCompile Include="DrawTriangle.cpp" />
@@ -157,11 +158,13 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="Collision.h" />
     <ClInclude Include="DrawAABB.h" />
     <ClInclude Include="DrawGrid.h" />
+    <ClInclude Include="DrawOBB.h" />
     <ClInclude Include="DrawPlane.h" />
     <ClInclude Include="DrawSphere.h" />
     <ClInclude Include="DrawTriangle.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="Matrix4x4_operation.h" />
+    <ClInclude Include="OBB.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Triangle.h" />

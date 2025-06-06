@@ -1,5 +1,6 @@
 ﻿#include "Collision.h"
 #include "Vector3_operation.h"
+#include "Matrix4x4_operation.h"
 #include <cmath>
 #include <algorithm>
 
@@ -240,4 +241,33 @@ bool IsCollision(const AABB& aabb, const Segment& segment) {
 		return true;
 	}
 	return false;
+}
+
+//OBBと球の衝突
+bool IsCollision(const OBB& obb, const Sphere& sphere) {
+
+	Matrix4x4 obbWorldMatrix{
+		.m{
+			{obb.orientations[0].x	,obb.orientations[0].y	,obb.orientations[0].z	,0.0f},
+			{obb.orientations[1].x	,obb.orientations[1].y	,obb.orientations[1].z	,0.0f},
+			{obb.orientations[2].x	,obb.orientations[2].y	,obb.orientations[2].z	,0.0f},
+			{obb.center.x			,obb.center.y			,obb.center.z			,1.0f},
+		}
+	};
+
+	Matrix4x4 obbWorldMatrixInverse = Inverse(obbWorldMatrix);
+
+	Vector3 centerInOBBLocalSpace = Transform(sphere.center, obbWorldMatrixInverse);
+
+	AABB aabbOBBLocal{
+		.min{-obb.size.x,-obb.size.y,-obb.size.z},
+		.max{obb.size}
+	};
+
+	Sphere sphereOBBLocal{
+		.center{centerInOBBLocalSpace},
+		.radius{sphere.radius}
+	};
+
+	return IsCollision(aabbOBBLocal, sphereOBBLocal);
 }
