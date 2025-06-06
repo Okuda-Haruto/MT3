@@ -8,6 +8,7 @@
 #include "DrawTriangle.h"
 #include "DrawPlane.h"
 #include "DrawAABB.h"
+#include "DrawOBB.h"
 #include "Collision.h"
 
 #define _USE_MATH_DEFINES
@@ -57,14 +58,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{-1.0f,-1.0f,0.0f}
 	};
 
-	AABB aabb{
-		.min{-0.5f,-0.5f,-0.5f},
-		.max{0.5f,0.5f,0.5f}
+	OBB obb{
+		.center{1.0f,1.0f,1.0f},
+		.orientations{
+			{0.0f,0.0f,0.0f},
+			{0.0f,0.0f,0.0f},
+			{0.0f,0.0f,0.0f}
+		},
+		.size{1.0f,1.0f,1.0f}
 	};
-	Segment segment{
-		.origin{-0.7f,0.3f,0.0f},
-		.diff{2.0f,-0.5f,0.0f}
+
+	Sphere sphere{
+		.center{2.0f,2.0f,2.0f},
+		.radius{1.0f}
 	};
+
+	Vector3 obbRotate{};
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -95,18 +104,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
-		ImGui::DragFloat3("aabb min", &aabb.min.x, 0.01f);
-		ImGui::DragFloat3("aabb max", &aabb.max.x, 0.01f);
-		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
-		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
+		ImGui::DragFloat3("obb center", &obb.center.x, 0.01f);
+		ImGui::SliderAngle("obb rotate X", &obbRotate.x, 0.01f);
+		ImGui::SliderAngle("obb rotate Y", &obbRotate.y, 0.01f);
+		ImGui::SliderAngle("obb rotate Z", &obbRotate.z, 0.01f);
+		ImGui::DragFloat3("obb size", &obb.size.x, 0.01f);
+		ImGui::DragFloat3("sphere center", &sphere.center.x, 0.01f);
+		ImGui::DragFloat("sphere radius", &sphere.radius, 0.01f);
 		ImGui::End();
 
-		aabb.min.x = std::min(aabb.min.x, aabb.max.x);
-		aabb.max.x = std::max(aabb.min.x, aabb.max.x);
-		aabb.min.y = std::min(aabb.min.y, aabb.max.y);
-		aabb.max.y = std::max(aabb.min.y, aabb.max.y);
-		aabb.min.z = std::min(aabb.min.z, aabb.max.z);
-		aabb.max.z = std::max(aabb.min.z, aabb.max.z);
+
+		Matrix4x4 rotateX = MakeRotateXMatrix(obbRotate.x);
+		Matrix4x4 rotateY = MakeRotateYMatrix(obbRotate.y);
+		Matrix4x4 rotateZ = MakeRotateZMatrix(obbRotate.z);
+
+		Matrix4x4 rotateMatrix = Multiply(rotateX, Multiply(rotateY, rotateZ));
+		obb.orientations[0] = { rotateMatrix.m[0][0],rotateMatrix.m[1][0] ,rotateMatrix.m[2][0] };
+		obb.orientations[1] = { rotateMatrix.m[0][1],rotateMatrix.m[1][1] ,rotateMatrix.m[2][1] };
+		obb.orientations[2] = { rotateMatrix.m[0][2],rotateMatrix.m[1][2] ,rotateMatrix.m[2][2] };
+
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
 		Matrix4x4 cameraMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
@@ -130,14 +146,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin , segment.diff), worldViewProjectionMatrix), viewportMatrix);
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
+		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, WHITE);
 
-		if (IsCollision(aabb,segment)) {
-			DrawAABB(aabb, worldViewProjectionMatrix, viewportMatrix, RED);
+		if (IsCollision(obb,sphere)) {
+			DrawOBB(obb, worldViewProjectionMatrix, viewportMatrix, RED);
 		} else {
-			DrawAABB(aabb, worldViewProjectionMatrix, viewportMatrix, WHITE);
+			DrawOBB(obb, worldViewProjectionMatrix, viewportMatrix, WHITE);
 		}
 
 		///

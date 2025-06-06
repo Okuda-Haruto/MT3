@@ -4,6 +4,7 @@
 #include "Plane.h"
 #include "Triangle.h"
 #include "AABB.h"
+#include "OBB.h"
 
 //正射影ベクトル
 Vector3 Project(const Vector3& v1, const Vector3& v2);
@@ -32,3 +33,5 @@ bool IsCollision(const AABB& aabb, const Line& line);
 bool IsCollision(const AABB& aabb, const Ray& ray);
 //AABBと線分の衝突
 bool IsCollision(const AABB& aabb, const Segment& segment);
+//OBBと球の衝突
+bool IsCollision(const OBB& obb, const Sphere& sphere);
