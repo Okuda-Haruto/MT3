@@ -68,9 +68,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		.size{1.0f,1.0f,1.0f}
 	};
 
-	Sphere sphere{
-		.center{2.0f,2.0f,2.0f},
-		.radius{1.0f}
+	Segment line{
+		.origin{0.0f,1.0f,0.0f},
+		.diff{1.0f,0.0f,0.0f}
 	};
 
 	Vector3 obbRotate{};
@@ -109,8 +109,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::SliderAngle("obb rotate Y", &obbRotate.y, 0.01f);
 		ImGui::SliderAngle("obb rotate Z", &obbRotate.z, 0.01f);
 		ImGui::DragFloat3("obb size", &obb.size.x, 0.01f);
-		ImGui::DragFloat3("sphere center", &sphere.center.x, 0.01f);
-		ImGui::DragFloat("sphere radius", &sphere.radius, 0.01f);
+		ImGui::DragFloat3("line origin", &line.origin.x, 0.01f);
+		ImGui::DragFloat3("line diff", &line.diff.x, 0.01f);
 		ImGui::End();
 
 
@@ -146,9 +146,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, WHITE);
+		Vector3 start = Transform(Transform(line.origin, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 end = Transform(Transform(Add(line.origin, line.diff), worldViewProjectionMatrix), viewportMatrix);
+		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
 
-		if (IsCollision(obb,sphere)) {
+		if (IsCollision(obb,line)) {
 			DrawOBB(obb, worldViewProjectionMatrix, viewportMatrix, RED);
 		} else {
 			DrawOBB(obb, worldViewProjectionMatrix, viewportMatrix, WHITE);

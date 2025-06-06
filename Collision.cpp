@@ -199,13 +199,13 @@ bool IsCollision(const AABB& aabb, const Segment& segment) {
 	};
 	//Nan対策
 	if ((aabb.min.x - segment.origin.x) == 0 && segment.diff.x == 0) {
-		min.x = (aabb.min.x - (segment.origin.x - 0.00001f)) / segment.diff.x;
+		min.x = (aabb.min.x - (segment.origin.x - 0.00001f)) / (segment.diff.x - 0.00001f);
 	}
 	if ((aabb.min.y - segment.origin.y) == 0 && segment.diff.y == 0) {
-		min.y = (aabb.min.y - (segment.origin.y - 0.00001f)) / segment.diff.y;
+		min.y = (aabb.min.y - (segment.origin.y - 0.00001f)) / (segment.diff.y - 0.00001f);
 	}
 	if ((aabb.min.z - segment.origin.z) == 0 && segment.diff.z == 0) {
-		min.z = (aabb.min.z - (segment.origin.z - 0.00001f)) / segment.diff.z;
+		min.z = (aabb.min.z - (segment.origin.z - 0.00001f)) / (segment.diff.z - 0.00001f);
 	}
 
 	Vector3 max = {
@@ -214,14 +214,14 @@ bool IsCollision(const AABB& aabb, const Segment& segment) {
 		(aabb.max.z - segment.origin.z) / segment.diff.z,
 	};
 	//Nan対策
-	if ((aabb.min.x - segment.origin.x) == 0 && segment.diff.x == 0) {
-		min.x = (aabb.min.x - (segment.origin.x - 0.00001f)) / segment.diff.x;
+	if ((aabb.max.x - segment.origin.x) == 0 && segment.diff.x == 0) {
+		max.x = (aabb.max.x - (segment.origin.x - 0.00001f)) / (segment.diff.x - 0.00001f);
 	}
-	if ((aabb.min.y - segment.origin.y) == 0 && segment.diff.y == 0) {
-		min.y = (aabb.min.y - (segment.origin.y - 0.00001f)) / segment.diff.y;
+	if ((aabb.max.y - segment.origin.y) == 0 && segment.diff.y == 0) {
+		max.y = (aabb.max.y - (segment.origin.y - 0.00001f)) / (segment.diff.y - 0.00001f);
 	}
-	if ((aabb.min.z - segment.origin.z) == 0 && segment.diff.z == 0) {
-		min.z = (aabb.min.z - (segment.origin.z - 0.00001f)) / segment.diff.z;
+	if ((aabb.max.z - segment.origin.z) == 0 && segment.diff.z == 0) {
+		max.z = (aabb.max.z - (segment.origin.z - 0.00001f)) / (segment.diff.z - 0.00001f);
 	}
 
 	float tNearX = std::min(min.x, max.x), tFarX = std::max(min.x, max.x);
@@ -270,4 +270,91 @@ bool IsCollision(const OBB& obb, const Sphere& sphere) {
 	};
 
 	return IsCollision(aabbOBBLocal, sphereOBBLocal);
+}
+
+//OBBと直線の衝突
+bool IsCollision(const OBB& obb, const Line& line) {
+
+	Matrix4x4 obbWorldMatrix{
+		.m{
+			{obb.orientations[0].x	,obb.orientations[0].y	,obb.orientations[0].z	,0.0f},
+			{obb.orientations[1].x	,obb.orientations[1].y	,obb.orientations[1].z	,0.0f},
+			{obb.orientations[2].x	,obb.orientations[2].y	,obb.orientations[2].z	,0.0f},
+			{obb.center.x			,obb.center.y			,obb.center.z			,1.0f},
+		}
+	};
+
+	Matrix4x4 obbWorldMatrixInverse = Inverse(obbWorldMatrix);
+
+	Vector3 localOrigin = Transform(line.origin, obbWorldMatrixInverse);
+	Vector3 localEnd = Transform(Add(line.origin, line.diff), obbWorldMatrixInverse);
+
+	AABB localAABB{
+		{-obb.size.x,-obb.size.y,-obb.size.z},
+		{+obb.size.x,+obb.size.y,+obb.size.z}
+	};
+
+	Line localLine;
+	localLine.origin = localOrigin;
+	localLine.diff = Subtract(localEnd, localOrigin);
+
+	return IsCollision(localAABB, localLine);
+}
+
+//OBBと半直線の衝突
+bool IsCollision(const OBB& obb, const Ray& ray) {
+
+	Matrix4x4 obbWorldMatrix{
+		.m{
+			{obb.orientations[0].x	,obb.orientations[0].y	,obb.orientations[0].z	,0.0f},
+			{obb.orientations[1].x	,obb.orientations[1].y	,obb.orientations[1].z	,0.0f},
+			{obb.orientations[2].x	,obb.orientations[2].y	,obb.orientations[2].z	,0.0f},
+			{obb.center.x			,obb.center.y			,obb.center.z			,1.0f},
+		}
+	};
+
+	Matrix4x4 obbWorldMatrixInverse = Inverse(obbWorldMatrix);
+
+	Vector3 localOrigin = Transform(ray.origin, obbWorldMatrixInverse);
+	Vector3 localEnd = Transform(Add(ray.origin, ray.diff), obbWorldMatrixInverse);
+
+	AABB localAABB{
+		{-obb.size.x,-obb.size.y,-obb.size.z},
+		{+obb.size.x,+obb.size.y,+obb.size.z}
+	};
+
+	Ray localRay;
+	localRay.origin = localOrigin;
+	localRay.diff = Subtract(localEnd, localOrigin);
+
+	return IsCollision(localAABB, localRay);
+}
+
+//OBBと線分の衝突
+bool IsCollision(const OBB& obb, const Segment& segment) {
+
+	Matrix4x4 obbWorldMatrix{
+		.m{
+			{obb.orientations[0].x	,obb.orientations[0].y	,obb.orientations[0].z	,0.0f},
+			{obb.orientations[1].x	,obb.orientations[1].y	,obb.orientations[1].z	,0.0f},
+			{obb.orientations[2].x	,obb.orientations[2].y	,obb.orientations[2].z	,0.0f},
+			{obb.center.x			,obb.center.y			,obb.center.z			,1.0f},
+		}
+	};
+
+	Matrix4x4 obbWorldMatrixInverse = Inverse(obbWorldMatrix);
+
+	Vector3 localOrigin = Transform(segment.origin, obbWorldMatrixInverse);
+	Vector3 localEnd = Transform(Add(segment.origin, segment.diff), obbWorldMatrixInverse);
+
+	AABB localAABB{
+		{-obb.size.x,-obb.size.y,-obb.size.z},
+		{+obb.size.x,+obb.size.y,+obb.size.z}
+	};
+
+	Segment localSegment;
+	localSegment.origin = localOrigin;
+	localSegment.diff = Subtract(localEnd, localOrigin);
+
+	return IsCollision(localAABB, localSegment);
 }
