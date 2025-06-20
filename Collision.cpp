@@ -358,3 +358,29 @@ bool IsCollision(const OBB& obb, const Segment& segment) {
 
 	return IsCollision(localAABB, localSegment);
 }
+
+//OBBとOBBの衝突
+/*bool IsCollision(const OBB& obb1, const OBB& obb2) {
+
+	Matrix4x4 obb1WorldMatrix{
+		.m{
+			{obb1.orientations[0].x	,obb1.orientations[0].y	,obb1.orientations[0].z	,0.0f},
+			{obb1.orientations[1].x	,obb1.orientations[1].y	,obb1.orientations[1].z	,0.0f},
+			{obb1.orientations[2].x	,obb1.orientations[2].y	,obb1.orientations[2].z	,0.0f},
+			{obb1.center.x			,obb1.center.y			,obb1.center.z			,1.0f},
+		}
+	};
+	Matrix4x4 obb1WorldMatrixInverse = Inverse(obb1WorldMatrix);
+
+	Matrix4x4 obb2WorldMatrix{
+		.m{
+			{obb2.orientations[0].x	,obb2.orientations[0].y	,obb2.orientations[0].z	,0.0f},
+			{obb2.orientations[1].x	,obb2.orientations[1].y	,obb2.orientations[1].z	,0.0f},
+			{obb2.orientations[2].x	,obb2.orientations[2].y	,obb2.orientations[2].z	,0.0f},
+			{obb2.center.x			,obb2.center.y			,obb2.center.z			,1.0f},
+		}
+	};
+	Matrix4x4 obb2WorldMatrixInverse = Inverse(obb2WorldMatrix);
+
+	return false;
+}*/

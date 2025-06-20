@@ -71,6 +71,9 @@
     <ClCompile Include="DrawOBB.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="DrawBezier.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
@@ -187,6 +190,9 @@
       <Filter>ヘッダーファイル</Filter>
     </ClInclude>
     <ClInclude Include="DrawOBB.h">
+      <Filter>ヘッダーファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawBezier.h">
       <Filter>ヘッダーファイル</Filter>
     </ClInclude>
   </ItemGroup>

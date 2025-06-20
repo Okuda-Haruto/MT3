@@ -52,3 +52,12 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 	AnswerVector.z = v1.x * v2.y - v1.y * v2.x;
 	return AnswerVector;
 }
+
+//線形補間
+Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) {
+	Vector3 AnswerVector;
+	AnswerVector.x = v1.x * (1 - t) + v2.x * t;
+	AnswerVector.y = v1.y * (1 - t) + v2.y * t;
+	AnswerVector.z = v1.z * (1 - t) + v2.z * t;
+	return AnswerVector;
+}
