@@ -16,3 +16,6 @@ Vector3 Normalize(const Vector3& v);
 
 //クロス積
 Vector3 Cross(const Vector3& v1, const Vector3& v2);
+
+//線形補間
+Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);

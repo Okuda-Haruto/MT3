@@ -9,6 +9,7 @@
 #include "DrawPlane.h"
 #include "DrawAABB.h"
 #include "DrawOBB.h"
+#include "DrawBezier.h"
 #include "Collision.h"
 
 #define _USE_MATH_DEFINES
@@ -58,22 +59,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		{-1.0f,-1.0f,0.0f}
 	};
 
-	OBB obb{
-		.center{1.0f,1.0f,1.0f},
-		.orientations{
-			{0.0f,0.0f,0.0f},
-			{0.0f,0.0f,0.0f},
-			{0.0f,0.0f,0.0f}
-		},
-		.size{1.0f,1.0f,1.0f}
+	Vector3 ControlPoints[3]{
+		{-0.8f,0.58f,1.0f},
+		{1.76f,1.0f,-0.3f},
+		{0.94f,-0.7f,2.3f}
 	};
-
-	Segment line{
-		.origin{0.0f,1.0f,0.0f},
-		.diff{1.0f,0.0f,0.0f}
-	};
-
-	Vector3 obbRotate{};
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -104,25 +94,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
-		ImGui::DragFloat3("obb center", &obb.center.x, 0.01f);
-		ImGui::SliderAngle("obb rotate X", &obbRotate.x, 0.01f);
-		ImGui::SliderAngle("obb rotate Y", &obbRotate.y, 0.01f);
-		ImGui::SliderAngle("obb rotate Z", &obbRotate.z, 0.01f);
-		ImGui::DragFloat3("obb size", &obb.size.x, 0.01f);
-		ImGui::DragFloat3("line origin", &line.origin.x, 0.01f);
-		ImGui::DragFloat3("line diff", &line.diff.x, 0.01f);
+		ImGui::DragFloat3("controlPoint 0", &ControlPoints[0].x, 0.01f);
+		ImGui::DragFloat3("controlPoint 1", &ControlPoints[1].x, 0.01f);
+		ImGui::DragFloat3("controlPoint 2", &ControlPoints[2].x, 0.01f);
 		ImGui::End();
-
-
-		Matrix4x4 rotateX = MakeRotateXMatrix(obbRotate.x);
-		Matrix4x4 rotateY = MakeRotateYMatrix(obbRotate.y);
-		Matrix4x4 rotateZ = MakeRotateZMatrix(obbRotate.z);
-
-		Matrix4x4 rotateMatrix = Multiply(rotateX, Multiply(rotateY, rotateZ));
-		obb.orientations[0] = { rotateMatrix.m[0][0],rotateMatrix.m[1][0] ,rotateMatrix.m[2][0] };
-		obb.orientations[1] = { rotateMatrix.m[0][1],rotateMatrix.m[1][1] ,rotateMatrix.m[2][1] };
-		obb.orientations[2] = { rotateMatrix.m[0][2],rotateMatrix.m[1][2] ,rotateMatrix.m[2][2] };
-
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
 		Matrix4x4 cameraMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
@@ -130,11 +105,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
-		Vector3 screenVertices[3];
-		for (int i = 0; i < 3; i++) {
-			Vector3 ndcVertex = Transform(kLocalVertices[i], worldViewProjectionMatrix);
-			screenVertices[i] = Transform(ndcVertex, viewportMatrix);
-		}
 
 		///
 		/// ↑更新処理ここまで
@@ -146,15 +116,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		Vector3 start = Transform(Transform(line.origin, worldViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(Add(line.origin, line.diff), worldViewProjectionMatrix), viewportMatrix);
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
-
-		if (IsCollision(obb,line)) {
-			DrawOBB(obb, worldViewProjectionMatrix, viewportMatrix, RED);
-		} else {
-			DrawOBB(obb, worldViewProjectionMatrix, viewportMatrix, WHITE);
-		}
+		DrawBezier(ControlPoints[0], ControlPoints[1], ControlPoints[2], worldViewProjectionMatrix, viewportMatrix, BLUE);
 
 		///
 		/// ↑描画処理ここまで
