@@ -52,17 +52,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 translate{ 0.0f,0.0f,10.0f};
 	Vector3 cameraTranslate{0.0f,3.0f,0.0f};
 	Vector3 cameraRotate{ 0.26f,0.0f,0.0f };
-	//ローカル座標系の頂点
-	Vector3 kLocalVertices[3] = {
-		{1.0f,-1.0f,0.0f},
-		{0.0f,1.0f,0.0f},
-		{-1.0f,-1.0f,0.0f}
+
+	Vector3 translates[3] = {
+		{0.2f,1.0f,0.0f},
+		{0.4f,0.0f,0.0f},
+		{0.3f,0.0f,0.0f}
 	};
 
-	Vector3 ControlPoints[3]{
-		{-0.8f,0.58f,1.0f},
-		{1.76f,1.0f,-0.3f},
-		{0.94f,-0.7f,2.3f}
+	Vector3 rotates[3] = {
+		{0.0f,0.0f,-6.8f},
+		{0.0f,0.0f,-1.4f},
+		{0.0f,0.0f,0.0f}
+	};
+
+	Vector3 scales[3] = {
+		{1.0f,1.0f,1.0f},
+		{1.0f,1.0f,1.0f},
+		{1.0f,1.0f,1.0f}
 	};
 
 	// ウィンドウの×ボタンが押されるまでループ
@@ -94,9 +100,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
-		ImGui::DragFloat3("controlPoint 0", &ControlPoints[0].x, 0.01f);
-		ImGui::DragFloat3("controlPoint 1", &ControlPoints[1].x, 0.01f);
-		ImGui::DragFloat3("controlPoint 2", &ControlPoints[2].x, 0.01f);
+		ImGui::DragFloat3("translate 0", &translates[0].x, 0.01f);
+		ImGui::DragFloat3("rotate 0", &rotates[0].x, 0.01f);
+		ImGui::DragFloat3("scale 0", &scales[0].x, 0.01f);
+		ImGui::DragFloat3("translate 1", &translates[1].x, 0.01f);
+		ImGui::DragFloat3("rotate 1", &rotates[1].x, 0.01f);
+		ImGui::DragFloat3("scale 1", &scales[1].x, 0.01f);
+		ImGui::DragFloat3("translate 2", &translates[2].x, 0.01f);
+		ImGui::DragFloat3("rotate 2", &rotates[2].x, 0.01f);
+		ImGui::DragFloat3("scale 2", &scales[2].x, 0.01f);
 		ImGui::End();
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
@@ -116,7 +128,37 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		DrawBezier(ControlPoints[0], ControlPoints[1], ControlPoints[2], worldViewProjectionMatrix, viewportMatrix, BLUE);
+		Matrix4x4 shoulderMatrix = MakeAffineMatrix(scales[0], rotates[0], translates[0]);
+		Matrix4x4 elbowMatrix = MakeAffineMatrix(scales[1], rotates[1], translates[1]);
+		Matrix4x4 handMatrix = MakeAffineMatrix(scales[2], rotates[2], translates[2]);
+
+		Sphere sphere[3];
+		sphere[0] = {
+			.center{Transform({0.0f,0.0f,0.0f},shoulderMatrix)},
+			.radius{0.1f}
+		};
+		sphere[1] = {
+			.center{Transform({0.0f,0.0f,0.0f},Multiply(elbowMatrix,shoulderMatrix))},
+			.radius{0.1f}
+		};
+		sphere[2] = {
+			.center{Transform({0.0f,0.0f,0.0f},Multiply(handMatrix,Multiply(elbowMatrix,shoulderMatrix)))},
+			.radius{0.1f}
+		};
+
+		Vector3 start = Transform(Transform(sphere[0].center, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 end = Transform(Transform(sphere[1].center, worldViewProjectionMatrix), viewportMatrix);
+
+		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
+
+		start = end;
+		end = Transform(Transform(sphere[2].center, worldViewProjectionMatrix), viewportMatrix);
+
+		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
+
+		DrawSphere(sphere[0], worldViewProjectionMatrix, viewportMatrix, RED);
+		DrawSphere(sphere[1], worldViewProjectionMatrix, viewportMatrix, GREEN);
+		DrawSphere(sphere[2], worldViewProjectionMatrix, viewportMatrix, BLUE);
 
 		///
 		/// ↑描画処理ここまで
