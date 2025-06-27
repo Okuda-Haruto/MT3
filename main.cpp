@@ -16,6 +16,9 @@
 #include <cmath>
 #include <imgui.h>
 
+#include "Spring.h"
+#include "Ball.h"
+
 const char kWindowTitle[] = "LE2A_02_オクダハルト_MT3";
 
 static const int kRowHeight = 20;
@@ -48,21 +51,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	/*Vector3 rotate{0.0f,0.0f,0.0f};
+	Vector3 rotate{0.0f,0.0f,0.0f};
 	Vector3 translate{ 0.0f,0.0f,10.0f};
 	Vector3 cameraTranslate{0.0f,3.0f,0.0f};
-	Vector3 cameraRotate{ 0.26f,0.0f,0.0f };*/
+	Vector3 cameraRotate{ 0.26f,0.0f,0.0f };
 
-	Vector3 a{ 0.2f,1.0f,0.0f };
-	Vector3 b{ 2.4f,3.1f,1.2f };
-	Vector3 c = a + b;
-	Vector3 d = a - b;
-	Vector3 e = a * 2.4f;
-	Vector3 rotate{ 0.4f,1.43f,-0.8f };
-	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
-	Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
-	Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotate.z);
-	Matrix4x4 rotateMatrix = rotateXMatrix * rotateYMatrix * rotateZMatrix;
+	Spring spring{};
+	spring.anchor = { 0.0f,0.0f,0.0f };
+	spring.naturalLength = 1.0f;
+	spring.stiffness = 100.0f;
+	spring.dampingCoefficient = 2.0f;
+
+	Ball ball{};
+	ball.position = { 1.2f,0.0f,0.0f };
+	ball.mass = 2.0f;
+	ball.radius = 0.05f;
+	ball.color = BLUE;
+
+	bool isStart = false;
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -77,7 +83,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		/*if (keys[DIK_W]) {
+		if (keys[DIK_W]) {
 			translate.z += 0.1f;
 		}
 		if (keys[DIK_S]) {
@@ -90,9 +96,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			translate.x += 0.1f;
 		}
 
+		if (isStart) {
+			float deltaTime = 1.0f / 60.0f;
+
+			Vector3 diff = ball.position - spring.anchor;
+			float length = Length(diff);
+			if (length != 0.0f) {
+				Vector3 direction = Normalize(diff);
+				Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
+				Vector3 displacement = length * (ball.position - restPosition);
+				Vector3 restoringForce = -spring.stiffness * displacement;
+				//減衰抵抗を計算する
+				Vector3 dampongForce = -spring.dampingCoefficient * ball.velocity;
+				//減衰抵抗も加味して、物体にかかる力を決定する
+				Vector3 force = restoringForce + dampongForce;
+				ball.acceleration = force / ball.mass;
+			}
+
+			ball.velocity += ball.acceleration * deltaTime;
+			ball.position += ball.velocity * deltaTime;
+		}
+
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x,0.01f);
+		if (ImGui::Button("Start")) {
+			isStart = true;
+		}
 		ImGui::End();
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
@@ -100,19 +130,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
-		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);*/
-
-		ImGui::Begin("Window");
-		ImGui::Text("c:%f, %f, %f", c.x, c.y, c.z);
-		ImGui::Text("d:%f, %f, %f", d.x, d.y, d.z);
-		ImGui::Text("e:%f, %f, %f", e.x, e.y, e.z);
-		ImGui::Text(
-			"matrix:\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f",
-			rotateMatrix.m[0][0], rotateMatrix.m[0][1], rotateMatrix.m[0][2], rotateMatrix.m[0][3],
-			rotateMatrix.m[1][0], rotateMatrix.m[1][1], rotateMatrix.m[1][2], rotateMatrix.m[1][3], 
-			rotateMatrix.m[2][0], rotateMatrix.m[2][1], rotateMatrix.m[2][2], rotateMatrix.m[2][3], 
-			rotateMatrix.m[3][0], rotateMatrix.m[3][1], rotateMatrix.m[3][2], rotateMatrix.m[3][3] );
-		ImGui::End();
+		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 
 		///
 		/// ↑更新処理ここまで
@@ -122,7 +140,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		//DrawGrid(worldViewProjectionMatrix, viewportMatrix);
+		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
+
+		Vector3 start = Transform(Transform({0.0f,0.0f,0.0f}, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 end = Transform(Transform(ball.position, worldViewProjectionMatrix), viewportMatrix);
+
+		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
+
+		Sphere sphere{
+			.center{ball.position},
+			.radius{ball.radius}
+		};
+
+		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, ball.color);
 
 		///
 		/// ↑描画処理ここまで
