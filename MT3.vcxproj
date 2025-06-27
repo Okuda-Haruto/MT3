@@ -129,6 +129,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.h" />
+    <ClInclude Include="Ball.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\base\StringUtility.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\math\Matrix4x4.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\math\Vector2.h" />
@@ -169,6 +170,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="OBB.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Spring.h" />
     <ClInclude Include="Triangle.h" />
     <ClInclude Include="Vector3_operation.h" />
   </ItemGroup>
