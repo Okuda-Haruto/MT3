@@ -4,6 +4,57 @@
 #include <cmath>
 #include <algorithm>
 
+Vector3 ClosestPointOnTriangle(const Vector3& p, const Triangle& tri) {
+	// 頂点
+	const Vector3& a = tri.vertices[0];
+	const Vector3& b = tri.vertices[1];
+	const Vector3& c = tri.vertices[2];
+
+	// 辺
+	Vector3 ab = Subtract(b, a);
+	Vector3 ac = Subtract(c, a);
+
+	Vector3 ap = Subtract(p, a);
+	float d1 = Dot(ab, ap);
+	float d2 = Dot(ac, ap);
+	if (d1 <= 0 && d2 <= 0) return a;  // vertex A
+
+	Vector3 bp = Subtract(p, b);
+	float d3 = Dot(ab, bp);
+	float d4 = Dot(ac, bp);
+	if (d3 >= 0 && d4 <= d3) return b;  // vertex B
+
+	Vector3 cp = Subtract(p, c);
+	float d5 = Dot(ab, cp);
+	float d6 = Dot(ac, cp);
+	if (d6 >= 0 && d5 <= d6) return c;  // vertex C
+
+	float vc = d1 * d4 - d3 * d2;
+	if (vc <= 0 && d1 >= 0 && d3 <= 0) {
+		float v = d1 / (d1 - d3);
+		return Add(a,Multiply(v,ab));  // edge AB
+	}
+
+	float vb = d5 * d2 - d1 * d6;
+	if (vb <= 0 && d2 >= 0 && d6 <= 0) {
+		float w = d2 / (d2 - d6);
+		return Add(a, Multiply(w, ac));  // edge AC
+	}
+
+	float va = d3 * d6 - d5 * d4;
+	if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
+		Vector3 bc = Subtract(c, b);
+		float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+		return Add(b, Multiply(w, bc));  // edge BC
+	}
+
+	// 面内部
+	float denom = 1 / (va + vb + vc);
+	float v = vb * denom;
+	float w = vc * denom;
+	return Add(a, Add(Multiply(v, ab), Multiply(w, ac)));
+}
+
 //正射影ベクトル
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	float t;
@@ -33,6 +84,25 @@ bool IsCollision(const Sphere& sphere, const Plane& plane) {
 	float k = Dot(plane.normal, sphere.center) - plane.distance;
 
 	return fabsf(k) <= sphere.radius;
+}
+
+//球と3角形の衝突
+bool IsCollision(const Sphere& sphere, const Triangle& triangle) {
+	Vector3 v01 = Subtract(triangle.vertices[0], triangle.vertices[1]);
+	Vector3 v12 = Subtract(triangle.vertices[1], triangle.vertices[2]);
+	Vector3 v20 = Subtract(triangle.vertices[2], triangle.vertices[0]);
+	Plane plane;
+	plane.normal = Normalize(Cross(v01, v12));
+	plane.distance = Dot(triangle.vertices[0], plane.normal);
+
+	if (IsCollision(sphere, plane)) {
+		//衝突地点の計算
+		Vector3 closest = ClosestPointOnTriangle(sphere.center, triangle);	//最近接点
+		Vector3 diff = Subtract(sphere.center,closest);
+		return Dot(diff, diff) <= sphere.radius * sphere.radius;
+	}
+
+	return false;
 }
 
 //直線と平面の衝突
@@ -384,3 +454,77 @@ bool IsCollision(const OBB& obb, const Segment& segment) {
 
 	return false;
 }*/
+
+//分離軸
+bool SAT(const AABB& aabb, const Triangle& triangle, Vector3 axis) {
+	//3角形の投射
+	float p0 = Dot(triangle.vertices[0], axis);
+	float p1 = Dot(triangle.vertices[1], axis);
+	float p2 = Dot(triangle.vertices[2], axis);
+	float triangleMin = std::min(std::min(p0, p1), p2);
+	float triangleMax = std::max(std::max(p0, p1), p2);
+	//AABBの投射
+	float aabbMin = std::min(Dot(aabb.min, axis), Dot(aabb.max, axis));
+	float aabbMax = std::max(Dot(aabb.max, axis), Dot(aabb.min, axis));
+	//影の長さ
+	float L1 = triangleMax - triangleMin;
+	float L2 = aabbMax - aabbMin;
+	float sumSpan = L1 + L2;
+	//2つの影の両端の差分
+	float longSpan = std::max(triangleMax, aabbMax) - std::min(triangleMin, aabbMin);
+
+	if (sumSpan < longSpan) {
+		return false;
+	}
+
+	return true;
+}
+
+//AABBと3角形の衝突判定
+bool IsCollision(const AABB& aabb, const Triangle& triangle) {
+
+	//軸に平行な法線
+	Vector3 axis[3]{
+		{1.0f,0.0f,0.0f},
+		{0.0f,1.0f,0.0f},
+		{0.0f,0.0f,1.0f},
+	};
+	//3角形の辺
+	Vector3 side[3]{
+		Subtract(triangle.vertices[1], triangle.vertices[0]),
+		Subtract(triangle.vertices[2], triangle.vertices[1]),
+		Subtract(triangle.vertices[0], triangle.vertices[2]),
+	};
+	//3角形の法線
+	Vector3 n = Normalize(Cross(side[0], side[1]));
+
+	//3角形の法線
+	if (!SAT(aabb, triangle, n)) {
+		return false;
+	}
+
+	//X~Z
+	for (int i = 0; i < 3; i++) {
+		if (!SAT(aabb, triangle, axis[i])) {
+			return false;
+		}
+	}
+
+	Vector3 axisN[3]{
+		{n.x,0.0f,0.0f},
+		{0.0f,n.y,0.0f},
+		{0.0f,0.0f,n.z}
+	};
+
+	//3角形の辺と軸による9つのクロス積
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			Vector3 crossAxis = Normalize(Cross(axis[i], axisN[j]));
+			if (!SAT(aabb, triangle, crossAxis)) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
