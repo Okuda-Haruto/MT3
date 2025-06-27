@@ -19,3 +19,12 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2);
 
 //線形補間
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
+
+
+Vector3 operator+(const Vector3& v1, const Vector3& v2);
+Vector3 operator-(const Vector3& v1, const Vector3& v2);
+Vector3 operator*(float s, const Vector3& v);
+Vector3 operator*(const Vector3& v, float s);
+Vector3 operator/(const Vector3& v, float s);
+Vector3 operator-(const Vector3& v);
+Vector3 operator+(const Vector3& v);
