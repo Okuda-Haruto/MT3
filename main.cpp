@@ -56,17 +56,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraTranslate{0.0f,3.0f,0.0f};
 	Vector3 cameraRotate{ 0.26f,0.0f,0.0f };
 
-	Spring spring{};
-	spring.anchor = { 0.0f,0.0f,0.0f };
-	spring.naturalLength = 1.0f;
-	spring.stiffness = 100.0f;
-	spring.dampingCoefficient = 2.0f;
-
-	Ball ball{};
-	ball.position = { 1.2f,0.0f,0.0f };
-	ball.mass = 2.0f;
-	ball.radius = 0.05f;
-	ball.color = BLUE;
+	Sphere sphere{};
+	sphere.radius = 0.05f;
+	float radius = 0.8f;
+	float omega = 3.14f;
+	float theta = 0.0f;
 
 	bool isStart = false;
 
@@ -99,23 +93,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (isStart) {
 			float deltaTime = 1.0f / 60.0f;
 
-			Vector3 diff = ball.position - spring.anchor;
-			float length = Length(diff);
-			if (length != 0.0f) {
-				Vector3 direction = Normalize(diff);
-				Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
-				Vector3 displacement = length * (ball.position - restPosition);
-				Vector3 restoringForce = -spring.stiffness * displacement;
-				//減衰抵抗を計算する
-				Vector3 dampongForce = -spring.dampingCoefficient * ball.velocity;
-				//減衰抵抗も加味して、物体にかかる力を決定する
-				Vector3 force = restoringForce + dampongForce;
-				ball.acceleration = force / ball.mass;
-			}
-
-			ball.velocity += ball.acceleration * deltaTime;
-			ball.position += ball.velocity * deltaTime;
+			theta += omega * deltaTime;
 		}
+
+		Vector3 p{};
+		p.x = 0.0f + std::cos(theta) * radius;
+		p.y = 0.0f + std::sin(theta) * radius;
+		p.z = 0.0f;
+
+		sphere.center = p;
 
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
@@ -123,6 +109,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (ImGui::Button("Start")) {
 			isStart = true;
 		}
+		ImGui::DragFloat("radius", &radius, 0.01f);
+		ImGui::SliderAngle("Omega", &omega);
 		ImGui::End();
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
@@ -142,17 +130,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		Vector3 start = Transform(Transform({0.0f,0.0f,0.0f}, worldViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(ball.position, worldViewProjectionMatrix), viewportMatrix);
-
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
-
-		Sphere sphere{
-			.center{ball.position},
-			.radius{ball.radius}
-		};
-
-		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, ball.color);
+		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, BLUE);
 
 		///
 		/// ↑描画処理ここまで
