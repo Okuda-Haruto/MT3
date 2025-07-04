@@ -18,6 +18,7 @@
 
 #include "Spring.h"
 #include "Ball.h"
+#include "Pendulum.h"
 
 const char kWindowTitle[] = "LE2A_02_オクダハルト_MT3";
 
@@ -58,9 +59,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Sphere sphere{};
 	sphere.radius = 0.05f;
-	float radius = 0.8f;
-	float omega = 3.14f;
-	float theta = 0.0f;
+
+	Pendulum pendulum{};
+	pendulum.anchor = { 0.0f,1.0f,0.0f };
+	pendulum.length = 0.8f;
+	pendulum.angle = 0.7f;
+	pendulum.angularVelocity = 0.0f;
+	pendulum.angularAcceleration = 0.0f;
 
 	bool isStart = false;
 
@@ -93,13 +98,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (isStart) {
 			float deltaTime = 1.0f / 60.0f;
 
-			theta += omega * deltaTime;
+			pendulum.angularAcceleration = -(9.8f / pendulum.length) * std::sin(pendulum.angle);
+			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
+			pendulum.angle += pendulum.angularVelocity * deltaTime;
 		}
 
 		Vector3 p{};
-		p.x = 0.0f + std::cos(theta) * radius;
-		p.y = 0.0f + std::sin(theta) * radius;
-		p.z = 0.0f;
+		p.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.length;
+		p.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.length;
+		p.z = pendulum.anchor.z;
 
 		sphere.center = p;
 
@@ -109,8 +116,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (ImGui::Button("Start")) {
 			isStart = true;
 		}
-		ImGui::DragFloat("radius", &radius, 0.01f);
-		ImGui::SliderAngle("Omega", &omega);
 		ImGui::End();
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
@@ -129,6 +134,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
+
+		Vector3 start = Transform(Transform(pendulum.anchor, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 end = Transform(Transform(sphere.center, worldViewProjectionMatrix), viewportMatrix);
+
+		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
 
 		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, BLUE);
 
