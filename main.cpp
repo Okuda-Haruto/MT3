@@ -10,6 +10,7 @@
 #include "DrawAABB.h"
 #include "DrawOBB.h"
 #include "DrawBezier.h"
+#include "DrawBall.h"
 #include "Collision.h"
 
 #define _USE_MATH_DEFINES
@@ -21,6 +22,8 @@
 #include "Ball.h"
 #include "Pendulum.h"
 #include "ConicalPendulum.h"
+
+#include "Reflect.h"
 
 const char kWindowTitle[] = "LE2A_02_オクダハルト_MT3";
 
@@ -59,15 +62,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraTranslate{0.0f,3.0f,0.0f};
 	Vector3 cameraRotate{ 0.26f,0.0f,0.0f };
 
-	Sphere sphere{};
-	sphere.radius = 0.05f;
+	Plane plane;
+	plane.normal = Normalize({ -0.2f,0.9f,-0.3f });
+	plane.distance = 0.0f;
 
-	ConicalPendulum conicalPendulum;
-	conicalPendulum.anchor = { 0.0f,1.0f,0.0f };
-	conicalPendulum.length = 0.8f;
-	conicalPendulum.halfApexAngle = 0.7f;
-	conicalPendulum.angle = 0.0f;
-	conicalPendulum.angularVelocity = 0.0f;
+	Ball ball{};
+	ball.position = { 0.8f,1.2f,0.3f };
+	ball.mass = 2.0f;
+	ball.radius = 0.05f;
+	ball.color = WHITE;
 
 	bool isStart = false;
 
@@ -98,20 +101,60 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 
 		if (isStart) {
-			float deltaTime = 1.0f / 60.0f;
+			//重力加速度
+			ball.acceleration = { 0.0f,-9.8f,0.0f };
 
-			conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.length * std::cos(conicalPendulum.halfApexAngle)));
-			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
+			float deltaTime = 1.0f / 60.0f;
+			//反発係数
+			float e = 0.8f;
+
+			ball.velocity += ball.acceleration * deltaTime;
+
+			Capsule capsule{
+				.segment{
+					.origin{ball.position},
+					.diff{ball.velocity * deltaTime}
+				},
+				.radius{ball.radius}
+			};
+			ball.position += ball.velocity * deltaTime;
+			if (IsCollision(capsule, plane)) {
+
+				const float kMaxCollisionTime = 16;
+				Vector3 CollisionPoint{};
+
+				for (float collisionTime = 0; collisionTime < kMaxCollisionTime; collisionTime++) {
+					if (IsCollision(Sphere{
+						capsule.segment.origin + capsule.segment.diff * collisionTime / kMaxCollisionTime,
+						capsule.radius },
+						plane)) {
+						//平面と点の距離
+						float k = Dot(plane.normal, Vector3{ capsule.segment.origin + capsule.segment.diff * collisionTime / kMaxCollisionTime }) - plane.distance;
+						//球の中心点から平面上におろした点
+						Vector3 q = Vector3{ capsule.segment.origin + capsule.segment.diff * collisionTime / kMaxCollisionTime } - k * plane.normal;
+						//qから半径分だけ平面から離した点
+						CollisionPoint = q + (capsule.radius + 0.001f) * plane.normal;
+						break;
+					}
+				}
+				ball.position = CollisionPoint;
+
+				Vector3 reflected = Reflect(ball.velocity, plane.normal);
+				Vector3 projectToNormal = Project(reflected, plane.normal);
+				Vector3 movingDirection = reflected - projectToNormal;
+				ball.velocity = projectToNormal * e + movingDirection;
+			}
+			/*if (IsCollision(Sphere{ball.position,ball.radius}, plane)) {
+				Vector3 reflected = Reflect(ball.velocity, plane.normal);
+				Vector3 projectToNormal = Project(reflected, plane.normal);
+				Vector3 movingDirection = reflected - projectToNormal;
+				ball.velocity = projectToNormal * e + movingDirection;
+			}*/
+
 		}
 
 		Vector3 p{};
-		float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-		float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-		p.x = conicalPendulum.anchor.x + std::sin(conicalPendulum.angle) * radius;
-		p.y = conicalPendulum.anchor.y - height;
-		p.z = conicalPendulum.anchor.z - std::cos(conicalPendulum.angle) * radius;
 
-		sphere.center = p;
 
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x,0.01f);
@@ -119,9 +162,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (ImGui::Button("Start")) {
 			isStart = true;
 		}
-		ImGui::DragFloat("Length", &conicalPendulum.length, 0.01f);
-		if (conicalPendulum.length <= 0.0f) { conicalPendulum.length = 0.01f; }
-		ImGui::DragFloat("HalfApexAngle", &conicalPendulum.halfApexAngle, 0.01f, 0.0f, std::numbers::pi_v<float> / 2 - 0.01f);
 		ImGui::End();
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
@@ -141,12 +181,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		Vector3 start = Transform(Transform(conicalPendulum.anchor, worldViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(sphere.center, worldViewProjectionMatrix), viewportMatrix);
+		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, WHITE);
 
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
-
-		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, BLUE);
+		DrawBall(ball, worldViewProjectionMatrix, viewportMatrix);
 
 		///
 		/// ↑描画処理ここまで
