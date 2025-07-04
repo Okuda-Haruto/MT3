@@ -230,6 +230,7 @@ bool IsCollision(const AABB& aabb, const Line& line) {
 	}
 	return false;
 }
+
 //AABBと半直線の衝突
 bool IsCollision(const AABB& aabb, const Ray& ray) {
 
@@ -480,7 +481,7 @@ bool SAT(const AABB& aabb, const Triangle& triangle, Vector3 axis) {
 	return true;
 }
 
-//AABBと3角形の衝突判定
+//AABBと3角形の衝突
 bool IsCollision(const AABB& aabb, const Triangle& triangle) {
 
 	//軸に平行な法線
@@ -527,4 +528,17 @@ bool IsCollision(const AABB& aabb, const Triangle& triangle) {
 	}
 
 	return true;
+}
+
+//カプセルと平面の衝突
+bool IsCollision(const Capsule& capsule, const Plane& plane) {
+	//線分が接触しているなら接触している
+	if (IsCollision(capsule.segment, plane)) { return true; }
+	
+	//線分の始点か終点の球のどちらかが接触しているなら接触している
+	if (IsCollision(Sphere{ capsule.segment.origin,capsule.radius }, plane)) { return true; }
+	if (IsCollision(Sphere{ capsule.segment.origin + capsule.segment.diff,capsule.radius }, plane)) { return true; }
+
+	//そうでないなら接触していない
+	return false;
 }
