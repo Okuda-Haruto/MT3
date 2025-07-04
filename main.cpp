@@ -15,10 +15,12 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <imgui.h>
+#include <numbers>
 
 #include "Spring.h"
 #include "Ball.h"
 #include "Pendulum.h"
+#include "ConicalPendulum.h"
 
 const char kWindowTitle[] = "LE2A_02_オクダハルト_MT3";
 
@@ -60,12 +62,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Sphere sphere{};
 	sphere.radius = 0.05f;
 
-	Pendulum pendulum{};
-	pendulum.anchor = { 0.0f,1.0f,0.0f };
-	pendulum.length = 0.8f;
-	pendulum.angle = 0.7f;
-	pendulum.angularVelocity = 0.0f;
-	pendulum.angularAcceleration = 0.0f;
+	ConicalPendulum conicalPendulum;
+	conicalPendulum.anchor = { 0.0f,1.0f,0.0f };
+	conicalPendulum.length = 0.8f;
+	conicalPendulum.halfApexAngle = 0.7f;
+	conicalPendulum.angle = 0.0f;
+	conicalPendulum.angularVelocity = 0.0f;
 
 	bool isStart = false;
 
@@ -98,15 +100,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (isStart) {
 			float deltaTime = 1.0f / 60.0f;
 
-			pendulum.angularAcceleration = -(9.8f / pendulum.length) * std::sin(pendulum.angle);
-			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
-			pendulum.angle += pendulum.angularVelocity * deltaTime;
+			conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.length * std::cos(conicalPendulum.halfApexAngle)));
+			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
 		}
 
 		Vector3 p{};
-		p.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.length;
-		p.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.length;
-		p.z = pendulum.anchor.z;
+		float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+		float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+		p.x = conicalPendulum.anchor.x + std::sin(conicalPendulum.angle) * radius;
+		p.y = conicalPendulum.anchor.y - height;
+		p.z = conicalPendulum.anchor.z - std::cos(conicalPendulum.angle) * radius;
 
 		sphere.center = p;
 
@@ -116,6 +119,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		if (ImGui::Button("Start")) {
 			isStart = true;
 		}
+		ImGui::DragFloat("Length", &conicalPendulum.length, 0.01f);
+		if (conicalPendulum.length <= 0.0f) { conicalPendulum.length = 0.01f; }
+		ImGui::DragFloat("HalfApexAngle", &conicalPendulum.halfApexAngle, 0.01f, 0.0f, std::numbers::pi_v<float> / 2 - 0.01f);
 		ImGui::End();
 
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
@@ -135,7 +141,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		Vector3 start = Transform(Transform(pendulum.anchor, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 start = Transform(Transform(conicalPendulum.anchor, worldViewProjectionMatrix), viewportMatrix);
 		Vector3 end = Transform(Transform(sphere.center, worldViewProjectionMatrix), viewportMatrix);
 
 		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
