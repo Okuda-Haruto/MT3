@@ -39,9 +39,17 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 //ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth);
 
+Matrix4x4 DotMatrix(const Matrix4x4& m, const Vector3& v);
+Matrix4x4 CrossMatrix(const Vector3& v);
+
+//任意軸回転行列
+Matrix4x4 MakeRotateAxisAngle(const Vector3& axis, float angle);
+
 
 Matrix4x4 operator+(const Matrix4x4& m1, const Matrix4x4& m2);
 Matrix4x4 operator-(const Matrix4x4& m1, const Matrix4x4& m2);
 Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2);
+Matrix4x4 operator*(const Matrix4x4& m, const float f);
+Matrix4x4 operator*(const float f, const Matrix4x4& m);
 Vector3 operator*(const Vector3& v, const Matrix4x4& m);
 Vector3 operator*(const Matrix4x4& m, const Vector3& v);
