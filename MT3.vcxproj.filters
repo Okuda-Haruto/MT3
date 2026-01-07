@@ -74,6 +74,12 @@
     <ClCompile Include="DrawBezier.cpp">
       <Filter>ソースファイル</Filter>
     </ClCompile>
+    <ClCompile Include="DrawBall.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="Reflect.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
@@ -204,5 +210,9 @@
     <ClInclude Include="Pendulum.h">
       <Filter>ヘッダーファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Capsule.h" />
+    <ClInclude Include="ConicalPendulum.h" />
+    <ClInclude Include="DrawBall.h" />
+    <ClInclude Include="Reflect.h" />
   </ItemGroup>
 </Project>

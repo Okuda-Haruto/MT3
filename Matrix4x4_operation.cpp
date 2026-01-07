@@ -1,6 +1,8 @@
 ﻿#include<Matrix4x4_operation.h>
+#include <Vector3_operation.h>
 #include<assert.h>
 #include<cmath>
+#include <numbers>
 
 //行列の加法
 Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2) {
@@ -228,6 +230,41 @@ Matrix4x4 MakeRotateAxisAngle(const Vector3& axis, float angle) {
 	Matrix4x4 C = -std::sinf(angle) * CrossMatrix(axis);
 
 	returnMatrix = Transpose(S + P - C);
+	return returnMatrix;
+}
+
+Matrix4x4 DirectionToDirection(const Vector3& from, const Vector3& to) {
+	Matrix4x4 returnMatrix;
+
+	if (from.x == -to.x && from.y == -to.y && from.z == -to.z) {
+		Vector3 n = Cross(from, Vector3{0.0f,0.0f,1.0f});
+		float cos = Dot(from, to);
+		float sin = Length(Cross(from, to));
+
+		Matrix4x4 S = MakeScaleMatrix(Vector3{ cos, cos, cos });
+
+		Matrix4x4 P = (1.0f - cos) * DotMatrix(n, n);
+
+		Matrix4x4 C = -sin * CrossMatrix(n);
+
+		returnMatrix = Transpose(S + P - C);
+
+		return returnMatrix;
+	} else {
+
+		Vector3 n = Normalize(Cross(from, to));
+		float cos = Dot(from, to);
+		float sin = Length(Cross(from, to));
+
+		Matrix4x4 S = MakeScaleMatrix(Vector3{ cos, cos, cos });
+
+		Matrix4x4 P = (1.0f - cos) * DotMatrix(n, n);
+
+		Matrix4x4 C = -sin * CrossMatrix(n);
+
+		returnMatrix = Transpose(S + P - C);
+	}
+
 	return returnMatrix;
 }
 
