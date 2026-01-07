@@ -80,6 +80,9 @@
     <ClCompile Include="Reflect.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
+    <ClCompile Include="Quaternion.cpp">
+      <Filter>ソースファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
@@ -214,5 +217,8 @@
     <ClInclude Include="ConicalPendulum.h" />
     <ClInclude Include="DrawBall.h" />
     <ClInclude Include="Reflect.h" />
+    <ClInclude Include="Quaternion.h">
+      <Filter>ヘッダーファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
