@@ -126,6 +126,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClCompile Include="DrawTriangle.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix4x4_operation.cpp" />
+    <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="Reflect.cpp" />
     <ClCompile Include="Vector3_operation.cpp" />
   </ItemGroup>
@@ -175,6 +176,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="OBB.h" />
     <ClInclude Include="Pendulum.h" />
     <ClInclude Include="Plane.h" />
+    <ClInclude Include="Quaternion.h" />
     <ClInclude Include="Reflect.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Spring.h" />
