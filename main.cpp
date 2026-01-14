@@ -44,6 +44,13 @@ void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix,const char* label)
 		}
 	}
 }
+void QuaternionScreenPrintf(int x, int y, const Quaternion& vector, const char* label) {
+	Novice::ScreenPrintf(x, y, "%.02f", vector.x);
+	Novice::ScreenPrintf(x + kColumnWidth, y, "%.02f", vector.y);
+	Novice::ScreenPrintf(x + kColumnWidth * 2, y, "%.02f", vector.z);
+	Novice::ScreenPrintf(x + kColumnWidth * 3, y, "%.02f", vector.w);
+	Novice::ScreenPrintf(x + kColumnWidth * 4, y, "%s", label);
+}
 
 static const int kWindowWidth = 1280;
 static const int kWindowHeight = 720;
@@ -58,15 +65,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	Quaternion q1 = { 2,3,4,1 };
-	Quaternion q2 = { 1,3,5,2 };
-	Quaternion identity = IdentityQuaternion();
-	Quaternion conj = Conjugate(q1);
-	Quaternion inv = Inverse(q1);
-	Quaternion normal = Normalize(q1);
-	Quaternion mul1 = Multiply(q1, q2);
-	Quaternion mul2 = Multiply(q2, q1);
-	float norm = Norm(q1);
+	Quaternion rotation = MakeRotateAxisAngleQuaternion(
+		Normalize(Vector3{ 1.0f,0.4f,-0.2f }), 0.45f);
+	Vector3 pointY = { 2.1f,-0.9f,1.3f };
+	Matrix4x4 rotateMatrix = MakeRotateMatrix(rotation);
+	Vector3 rotateByQuaternion = RotateVector(pointY, rotation);
+	Vector3 rotateByMatrix = Transform(pointY, rotateMatrix);
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -81,16 +86,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		ImGui::Begin("Quaternion");
-		ImGui::DragFloat4("Identity",&identity.x);
-		ImGui::DragFloat4("Conjugate", &conj.x);
-		ImGui::DragFloat4("Inverse", &inv.x);
-		ImGui::DragFloat4("Normalize", &normal.x);
-		ImGui::DragFloat4("Multiply1", &mul1.x);
-		ImGui::DragFloat4("Multiply2", &mul2.x);
-		ImGui::DragFloat("Norm", &norm);
-		ImGui::End();
-
+		QuaternionScreenPrintf(0, kRowHeight * 0, rotation, "    : rotation");
+		MatrixScreenPrintf(0, kRowHeight * 1, rotateMatrix, "rotateMatrix");
+		VectorScreenPrintf(0, kRowHeight * 6, rotateByQuaternion, "    : rotateByQuaternion");
+		VectorScreenPrintf(0, kRowHeight * 7, rotateByMatrix, "    : rotateByMatrix");
 
 		///
 		/// ↑更新処理ここまで
