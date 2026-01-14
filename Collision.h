@@ -45,7 +45,7 @@ bool IsCollision(const OBB& obb, const Ray& ray);
 //OBBと線分の衝突
 bool IsCollision(const OBB& obb, const Segment& segment);
 //OBBとOBBの衝突
-bool IsCollision(const OBB& obb1, const OBB& obb2);
+//bool IsCollision(const OBB& obb1, const OBB& obb2);
 
 //AABBと3角形の衝突
 bool IsCollision(const AABB& aabb, const Triangle& triangle);
