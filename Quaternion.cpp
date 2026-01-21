@@ -4,6 +4,34 @@
 #include "Matrix4x4_operation.h"
 #include <cmath>
 
+Quaternion Add(const Quaternion& q0, const Quaternion& q1) {
+	Quaternion returnQuaternion;
+	returnQuaternion.x = q0.x + q1.x;
+	returnQuaternion.y = q0.y + q1.y;
+	returnQuaternion.z = q0.z + q1.z;
+	returnQuaternion.w = q0.w + q1.w;
+	return returnQuaternion;
+}
+
+Quaternion Subtract(const Quaternion& q0, const Quaternion& q1) {
+	Quaternion returnQuaternion;
+	returnQuaternion.x = q0.x - q1.x;
+	returnQuaternion.y = q0.y - q1.y;
+	returnQuaternion.z = q0.z - q1.z;
+	returnQuaternion.w = q0.w - q1.w;
+	return returnQuaternion;
+}
+
+Quaternion Multiply(const float& f, const Quaternion& q) {
+	Quaternion returnQuaternion;
+	returnQuaternion.x = q.x * f;
+	returnQuaternion.y = q.y * f;
+	returnQuaternion.z = q.z * f;
+	returnQuaternion.w = q.w * f;
+	return returnQuaternion;
+}
+
+
 Quaternion Multiply(const Quaternion& lhs, const Quaternion& rhs) {
 	Quaternion returnQuaternion;
 	Vector3 qv = { lhs.x,lhs.y,lhs.z };
@@ -63,7 +91,7 @@ Quaternion Inverse(const Quaternion& quaternion) {
 	float norm = Norm(quaternion);
 
 	returnQuaternion.x = conjugate.x / powf(norm,2);
-	returnQuaternion.y= conjugate.y / powf(norm,2);
+	returnQuaternion.y = conjugate.y / powf(norm,2);
 	returnQuaternion.z = conjugate.z / powf(norm,2);
 	returnQuaternion.w = conjugate.w / powf(norm,2);
 
@@ -124,3 +152,31 @@ Matrix4x4 MakeRotateMatrix(const Quaternion& quaternion) {
 	returnMatrix.m[3][3] = 1.0f;
 	return returnMatrix;
 }
+
+float Dot(const Quaternion& q0, const Quaternion& q1) {
+	return q0.x * q1.x + q0.y * q1.y + q0.z * q1.z + q0.w * q1.w;
+}
+
+Quaternion Slerp(const Quaternion& q0, const Quaternion& q1, float t) {
+	Quaternion Q0 = q0, Q1 = q1;
+	float dot = Dot(Q0, Q1);
+	if (dot < 0) {
+		Q0 = -Q0;
+		dot = -dot;
+	}
+
+	float theta = std::acosf(dot);
+
+	float scale0 = std::sinf((1 - t) * theta) / std::sinf(theta);
+	float scale1 = std::sinf(t * theta) / std::sinf(theta);
+
+	return scale0 * Q0 + scale1 * Q1;
+}
+
+Quaternion operator+(const Quaternion& q1, const Quaternion& q2) { return Add(q1, q2); }
+Quaternion operator-(const Quaternion& q1, const Quaternion& q2) { return Subtract(q1, q2); }
+Quaternion operator*(float s, const Quaternion& q) { return Multiply(s, q); }
+Quaternion operator*(const Quaternion& q, float s) { return s * q; }
+Quaternion operator/(const Quaternion& q, float s) { return (1 / s) * q; }
+Quaternion operator-(const Quaternion& q) { return Quaternion{ -q.x,-q.y,-q.z,-q.w }; }
+Quaternion operator+(const Quaternion& q) { return q; }
